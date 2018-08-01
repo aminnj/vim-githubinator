@@ -46,7 +46,7 @@ function! s:generate_url() range
     let l:beg = GetRangeDelimiters()[0]
     let l:end = GetRangeDelimiters()[1]
     let l:branch = system("git branch 2> /dev/null | awk '{print $2}' | tr -d '\n'")
-    let l:git_remote = system("cat .git/config | grep \"url\" | sed \"s/url.*://g\" | awk '{print \"https://github.com/\", $0}' | tr -d '[:blank:]' | sed \"s/\.git$//g\" | tr -d '\n'")
+    let l:git_remote = system("git remote -v | grep fetch | awk '{print $2}' | sed 's#.*github\.com.##' | sed 's#^#https://github.com/#' | sed 's#\.git##'")
     let l:final_url = l:git_remote . '/blob/' . l:branch . '/' . l:file_name . '#L' . l:beg . '-L' . l:end
 
     return l:final_url
@@ -67,7 +67,8 @@ function! GithubCopyURL() range
     let l:final_url = s:generate_url()
 
     if !executable('pbcopy')
-        echoerr "githubinator: `pbcopy` command not found."
+        :!echo  -e "\033]1337;CopyToClipboard=;\a".l:final_url."\033]1337;EndCopy\a"
+        " echoerr "githubinator: `pbcopy` command not found."
         return
     endif
 
